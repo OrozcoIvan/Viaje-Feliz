@@ -1,78 +1,167 @@
 <?php
-include "Viaje.php";
+require_once('Viaje.php');
+require_once('Pasajero.php');
+require_once('ResponsableV.php');
 
-$coleccionPasajero[0]=Viaje::cargarDatos(41092156,'Juan','Gomez');
-$coleccionPasajero[1]=Viaje::cargarDatos(12212156,'Ivan','Orozco');
-$coleccionPasajero[2]=Viaje::cargarDatos(21412456,'Leonardo','Orozco');
-$coleccionPasajero[3]=Viaje::cargarDatos(12213236,'Ana','Mariñir');
 
-//nuevo objeto = ($codViaje, $destino, $maxPasajeros, $coleccionPasajero)
-$objViaje= new Viaje (1,'Bariloche', 30, $coleccionPasajero );
+echo "Para usar un viaje ya precargado ingrese si.\n";
+$patron = trim(fgets(STDIN));
 
-function CargarNuevosDatos()
-{
-    echo "Ingrese el codigo del vuelo: ";
-    $codViaje = trim(fgets(STDIN))."\n";
-    echo "Ingrese destino del vuelo: ";
-    $destino = trim(fgets(STDIN))."\n";
-    echo "Ingrese la cantidad máxima de pasajeros: ";
-    $maxPasajeros = trim(fgets(STDIN))."\n";
+if($patron == 'si' || $patron == 'Si' || $patron == 'SI'){
+    $objResponsable = new ResponsableV(45, 1500, 'Pepe', 'Perez');
+    $objViaje = new Viaje(123456, 'Bariloche', 20, $objResponsable);
+    $objPasajero1 = new Pasajero('Juan', 'Escamilla', 12345678, 123456789);
+    $objPasajero2 = new Pasajero('Carlos', 'Fernandez', 45678945, 456789456);
+    $objPasajero3 = new Pasajero('Marcos', 'Ramirez', 45678912, 4567891346);
+    $objViaje->agregarPasajero($objPasajero1);
+    $objViaje->agregarPasajero($objPasajero2);
+    $objViaje->agregarPasajero($objPasajero3);
+}else{
+    echo "Bienvenido a Viaje Feliz!\n";
+    echo "Ingrese los siguientes datos:\n";
+    echo "----------------\n";
+    echo "Ingrese el código del viaje: \n";
+    $codigoViaje = trim(fgets(STDIN));
+    echo "Ingrese el destino: \n";
+    $destinoViaje = trim(fgets(STDIN));
+    echo "Ingrese la máxima cantidad de asientos: \n";
+    $cantAsientos = trim(fgets(STDIN));
+    echo "Ingrese los datos del responsable del viaje: \n";
+    echo "Número de empleado: \n";
+    $numEmpleado = trim(fgets(STDIN));
+    echo "Número de licencia: \n";
+    $numLicencia = trim(fgets(STDIN));
+    echo "Nombre: \n";
+    $nombre = trim(fgets(STDIN));
+    echo "Apellido: \n";
+    $apellido = trim(fgets(STDIN));
 
-    //Recorrido for para cargar el Arreglo Asosiativo de PASAJEROS Y Cargar La COLECCION DE PASAJEROS
-    for($i=0; $i < $maxPasajeros; $i++) { 
-        echo "Ingrese el DNI del pasajero: ";
-        $DNI=trim(fgets(STDIN));
-        echo "Ingrese el nombre del pasajero: ";
-        $nombre=(trim(fgets(STDIN)));
-        echo "Ingrese el apellido del pasajero: ";
-        $apellido=(trim(fgets(STDIN)));
-
-        $coleccionPasajero[$i]= Viaje::cargarDatos($DNI,$nombre,$apellido);
-    }
-    $objetoViaje = new Viaje($codViaje, $destino, $maxPasajeros, $coleccionPasajero);
-    return $objetoViaje;
+    $objResponsable = new ResponsableV($numEmpleado, $numLicencia, $nombre, $apellido);
+    $objViaje = new Viaje($codigoViaje, $destinoViaje, $cantAsientos, $objResponsable);
 }
 
-// Opcion del menu
+$terminal = true;
 do{
-    $opcion = seleccionarOpcion();
-    switch($opcion){
+    echo menu();
+    $opcion = trim(fgets(STDIN));
+    switch ($opcion) {
         case '1':
-            echo "Carge datos del Viaje"."\n";
-            $objViaje=CargarNuevosDatos();
-        break;
+            echo "El viaje posee el código: {$objViaje->getCodigoViajeInt()}. \n";
+            echo "Ingrese el nuevo código: \n";
+            $codigo = trim(fgets(STDIN));
+            $codgo = intval($codigo);
+            $objViaje->setCodigoViajeInt($codigo);
+            break;
+
         case '2':
-            echo "Elija lo que desea modificar: \n";
-            $objViaje->modificarViaje();
-        break;
+            echo "El viaje posee como destino a: {$objViaje->getDestinoStr()}. \n";
+            echo "Ingrese el nuevo destino: \n";
+            $destino = trim(fgets(STDIN));
+            $objViaje->setDestinoStr($destino);
+            break;
+        
         case '3':
-            echo "Ver Datos.\n";
+            echo "El viaje posee {$objViaje->getCantMaximaPasajerosInt()} asientos. \n";
+            echo "Ingrese la nueva cantidad de asientos: \n";
+            $cantidadAsientos = trim(fgets(STDIN));
+            $cantidadAsientos = intval($cantidadAsientos);
+            $objViaje->setCantMaximaPasajerosInt($cantidadAsientos);
+            break;
+
+        case '4':
+            if($objViaje->hayLugar()){
+                echo "Ingrese los datos de un pasajero: \n";
+                $objPasajero = tomarDatos();
+                if($objViaje->agregarPasajero($objPasajero)){
+                    echo "Pasajero agregado con exito.\n";
+                }else{
+                    echo "El pasajero ya se encuentra en el viaje.\n";
+                }
+            }else{
+                echo "No hay mas lugares en este viaje.\n";
+            }            
+            break;
+
+        case '5':
+            echo "Ingrese el dni del pasajero a quitar: \n";
+            $dniSeleccionado = intval(trim(fgets(STDIN)));
+            if($objViaje->quitarPasajero($dniSeleccionado)){
+                echo "El pasajero se ha quitado.\n";
+            }else{
+                echo "No se ha encontrado al pasajero.\n";
+            }
+            break;
+
+        case '6':
+            echo "Ingrese el dni del pasajero a modificar: \n";
+            $dniPasajero = intval(trim(fgets(STDIN)));
+            /*echo "Ingrese los nuevos datos: \n";
+            $objPasajero2 = tomarDatos();*/
+            if($objViaje->modificarDatosPasajero($dniPasajero)){
+                echo "Se han modificado los datos.\n";
+            }else{
+                echo "No se ha encontrado al pasajero.\n";
+            }
+            break;
+
+            
+        case '7':
             echo $objViaje;
-        break;
-    }
-}while($opcion!=4);
+            break;
 
-function seleccionarOpcion(){
-    $min = 1;
-    $max = 4;
-    echo "\n MENU DE OPCIONES: \n
-            1)- Cargar datos de Viaje.\n
-            2)- Modificar.\n
-            3)- Ver Datos.\n
-            4)- Salir.\n";
-    $opcion = solicitarNumeroEntre(1, 4);
-    return $opcion;
+
+        case '8':
+            $responsable = $objViaje->getResponsableDeViaje();
+            echo $responsable;
+            break;
+
+        case '9':
+            echo "Ingrese los nuevos datos del responsable: \n
+            Número de empleado: ";
+            $numEmpleado = trim(fgets(STDIN));
+            echo "Número de licencia: \n";
+            $numLicencia = trim(fgets(STDIN));
+            echo "Nombre: \n";
+            $nombre = trim(fgets(STDIN));
+            echo "Apellido: \n";
+            $apellido = trim(fgets(STDIN));
+            $objResponsable = new ResponsableV($numEmpleado, $numLicencia, $nombre, $apellido);
+            $objViaje->setResponsableDeViaje($objResponsable);
+            break;
+
+        default:
+            $terminal = false;
+            break;
+    }
+
+
+}while($terminal);
+
+function menu(){
+    $menu = "Elija una opción:\n
+    1. Modificar el código del viaje.\n
+    2. Modificar el destino del viaje.\n
+    3. Modificar la cantidad de asientos del viaje.\n
+    4. Agregar Pasajero. \n
+    5. Quitar Pasajero. \n
+    6. Modificar Pasajero. \n
+    7. Ver viaje. \n
+    8. Ver datos del responsable. \n 
+    9. Modificar datos del responsable. \n
+    10. Salir. \n";
+    return $menu;
 }
 
-function solicitarNumeroEntre($min, $max){
-    //int $numero
-    $numero = trim(fgets(STDIN));
-    while (!is_int($numero) && !($numero >= $min && $numero <= $max)) {
-        echo "Debe ingresar un número entre " . $min . " y " . $max . ": ";
-        $numero = trim(fgets(STDIN));
-    }
-    return $numero;
+
+function tomarDatos(){
+    echo "Nombre: \n";
+    $nombre = trim(fgets(STDIN));
+    echo "Apellido: \n";
+    $apellido = trim(fgets(STDIN));
+    echo "DNI: \n";
+    $numDni = intval(trim(fgets(STDIN)));
+    echo "Teléfono: \n";
+    $telefono = trim(fgets(STDIN));
+    $objPasajero = new Pasajero($nombre, $apellido, $numDni, $telefono);
+    return $objPasajero;
 }
-
-
-?>
